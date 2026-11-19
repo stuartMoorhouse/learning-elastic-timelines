@@ -89,17 +89,28 @@ State the hypothesis in one line in the Notes tab
 Notice: no alert drives this hunt, and the query is saved with it
 
 How to pivot (say: "A pivot is a follow-up question built from a value I just found"):
-1. Parent. In the results, find update.exe. Its Parent column (process.parent.name) says autorun.exe. Expand the query builder, click + Add field, choose process.name, enter autorun.exe, and drop it on a new row below the existing one (stacked rows are OR, side by side is AND). Temporarily disable the first row so only the new question shows (click the pill and choose Temporarily disable). Result: autorun.exe's own start event. Its parent is explorer.exe: a person launched it by hand from the USB drive.
-2. Child. Change the new row to process.parent.name = update.exe. Result: svchost32.exe starting from C:\Users\Public, unsigned. This is what the USB executable started next.
-3. Same process. Change the row to process.name = update.exe. Result: its own start and the file it created, C:\Users\Public\svchost32.exe.
-4. Re-enable the first row. Delete the pivot row before saving unless you want it kept in the record.
+
+The chain of programs is: explorer.exe, then autorun.exe, then update.exe, then svchost32.exe. Each pivot is one step along it, and only one name changes each time.
+
+Set-up, once: expand the query builder and click the pills of the first row (host.name and labels.bus_type), choosing Temporarily disable on each. They show a strikethrough. Then use the row below it (click + Add field if there is none). Stacked rows are OR, side by side is AND.
+
+| Step | Put in the row below | The Timeline shows | What it means |
+|---|---|---|---|
+| 1. Who started it? | `process.name` = `autorun.exe` | autorun.exe, parent explorer.exe | A person launched it by hand from the USB drive. |
+| 2. What did it start? | `process.parent.name` = `autorun.exe` | update.exe, parent autorun.exe | The first program launched a second one. |
+| 3. What did that start? | `process.parent.name` = `update.exe` | svchost32.exe, parent update.exe, from C:\Users\Public, unsigned | The second program dropped and ran a lookalike svchost. |
+| Optional: what else did update.exe do? | `process.name` = `update.exe` | update.exe and the file it created, C:\Users\Public\svchost32.exe | The file drop. |
+
+To go from one step to the next, change the name in the row (or remove the pill with its x and add a new one with + Add field), then click Refresh. If the Timeline shows more rows than the table says, a pill in the first row is not disabled (look for the strikethrough).
+
+When finished, re-enable the first row. Delete the pivot row before saving unless you want it kept in the record.
 
 Notes:
 - Prep: `scripts/inject-ot-telemetry.sh` and `scripts/load-timelines.sh` done.
 - Pivot meaning: moving from one thing you found to the events around it. It answers "who started this", "what did it start" and "what else did it do". Each step is a new query built from a value already on screen.
 - The template's columns include process.parent.name, so the parent is visible in the results.
 - Real Elastic Defend data also carries process.entity_id and process.parent.entity_id. Pivot on those when you can, because process names repeat. The demo data links processes by name only.
-- Verified in the data: the three pivots return autorun.exe (parent explorer.exe), svchost32.exe (parent update.exe), and update.exe plus its file creation. Not verified in the Kibana UI: the exact labels of the drag and disable actions. The docs say fields can be dragged or sent into the query builder, and that a filter can be temporarily disabled.
+- Verified in the data: every step in the table returns exactly what the table says. Seen in the Kibana UI: disabled pills show a strikethrough, the template's columns (including process.parent.name and labels.bus_type) fill in, and the pivot row returns the expected event. The event renderer writes each event as a sentence, which helps when explaining one.
 - Risk: if the drag does not work, use + Add field in the query builder.
 - Fallback: open the saved hunt `<date> | CLIENT-B | Hunt: executables run from removable media on the engineering workstation (T0847) | Closed - True Positive | TLP:AMBER` and describe the pivots from its pinned events.
 - Slides: annotated screenshot of the Timeline layout, "Four things to know before you start" (query builder first, AND/OR layout, save early, start from a template), run-the-hunt screenshot, a pivot diagram (process, its parent, its child), saved Timeline.
