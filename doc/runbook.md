@@ -80,39 +80,74 @@ Notes:
 
 ## Lesson 2: Timeline basics (7 min)
 
-Open the Removable media hunt template (T0847): `TEMPLATE | Hunt | Removable media on an engineering workstation (T0847) | {host.name} | TLP:AMBER`
-Create a Timeline from it and set host.name to ot-eng-ws-01
-Run the query: two processes launched from a USB drive (autorun.exe, update.exe)
-Pivot to the parent, then to the child (see "How to pivot" below)
-Save the Timeline (notes need a saved Timeline)
-State the hypothesis in one line in the Notes tab
-Notice: no alert drives this hunt, and the query is saved with it
+What you will do on screen: start from a template, run the hunt, follow one program down its chain with three pivots, then save.
 
-How to pivot (say: "A pivot is a follow-up question built from a value I just found"):
+Before you start: `scripts/inject-ot-telemetry.sh` and `scripts/load-timelines.sh` are done.
 
-The chain of programs is: explorer.exe, then autorun.exe, then update.exe, then svchost32.exe. Each pivot is one step along it, and only one name changes each time.
+### A. Open the template and make a Timeline from it
 
-Set-up, once: expand the query builder and click the pills of the first row (host.name and labels.bus_type), choosing Temporarily disable on each. They show a strikethrough. Then use the row below it (click + Add field if there is none). Stacked rows are OR, side by side is AND.
+1. Open the main menu, go to Investigations, then Timelines. (Or click the global search field at the top and type `Timelines`.)
+2. Click the **Templates** tab.
+3. Find `TEMPLATE | Hunt | Removable media on an engineering workstation (T0847) | {host.name} | TLP:AMBER`. Type `Removable` in the search box above the list if you need to.
+4. At the right end of that row, click the **All actions** icon, then click **Create timeline from template**. A new Timeline opens, named "Untitled Timeline" with an "Unsaved" label.
 
-| Step | Put in the row below | The Timeline shows | What it means |
-|---|---|---|---|
-| 1. Who started it? | `process.name` = `autorun.exe` | autorun.exe, parent explorer.exe | A person launched it by hand from the USB drive. |
-| 2. What did it start? | `process.parent.name` = `autorun.exe` | update.exe, parent autorun.exe | The first program launched a second one. |
-| 3. What did that start? | `process.parent.name` = `update.exe` | svchost32.exe, parent update.exe, from C:\Users\Public, unsigned | The second program dropped and ran a lookalike svchost. |
-| Optional: what else did update.exe do? | `process.name` = `update.exe` | update.exe and the file it created, C:\Users\Public\svchost32.exe | The file drop. |
+Say: "I'm not starting from a blank page. The template already holds the question, the columns and the note headings."
 
-To go from one step to the next, change the name in the row (or remove the pill with its x and add a new one with + Add field), then click Refresh. If the Timeline shows more rows than the table says, a pill in the first row is not disabled (look for the strikethrough).
+### B. Point it at the workstation and run it
 
-When finished, re-enable the first row. Delete the pivot row before saving unless you want it kept in the record.
+5. Check that the query builder is open: the dashed box under the search bar. If it is not, click the query builder button at the right end of the search bar.
+6. In the first row, the pill `host.name: "{host.name}"` is switched off (struck through) because it has a placeholder. Click it and change its value to `ot-eng-ws-01`. The strikethrough goes away.
+7. Click the calendar icon next to **Refresh**, choose **Last 90 days** (anything that covers today works), then click **Refresh**.
+8. Switch the **Event renderers** toggle on, above the results.
+
+You should see two rows: `autorun.exe` (parent `explorer.exe`) and `update.exe` (parent `autorun.exe`). Both have `usb` in the `labels.bus_type` column.
+
+Say: "This hunt asks one thing: did any program run from a USB drive on the engineering workstation? Two did, `autorun.exe` and `update.exe`, and neither is digitally signed." Point at the sentence under a row and say: "The Timeline even writes each event as a sentence."
+
+### C. Pivot: three questions
+
+Say: "A pivot is asking the next question about something I just found. The chain is explorer.exe, then autorun.exe, then update.exe, then svchost32.exe. Each pivot is one step along it."
+
+9. Switch off the first row. Click the pill `host.name: "ot-eng-ws-01"` and choose **Temporarily disable**. Do the same for `labels.bus_type: "usb"`. Both now show a strikethrough.
+   Say: "I switch the first search off for a moment, so only my new question shows."
+10. Question 1, who started it? In the empty row at the bottom of the query builder, click **+ Add field**. Choose the field `process.name`, leave the operator on "is", enter the value `autorun.exe`, and confirm. Click **Refresh**.
+    You should see one row: `autorun.exe`, parent `explorer.exe`.
+    Say: "Who started it? Explorer is what you use when you double-click a file, so a person launched it by hand."
+11. Question 2, what did it start? Click the **x** on that pill. Click **+ Add field** again and add `process.parent.name` with the value `autorun.exe`. Click **Refresh**.
+    You should see one row: `update.exe`, parent `autorun.exe`.
+    Say: "What did it start? A second program."
+12. Question 3, what did that start? Click the **x**, click **+ Add field**, and add `process.parent.name` with the value `update.exe`. Click **Refresh**.
+    You should see one row: `svchost32.exe`, parent `update.exe`, from `C:\Users\Public`, unsigned.
+    Say: "What did that start? `svchost` is a real Windows program. This one has a 32 on the end, sits in a public folder, and isn't signed. That's a disguise."
+13. Optional, what else did `update.exe` do? Replace the pill with `process.name` = `update.exe`. You should see its start and the file it created, `C:\Users\Public\svchost32.exe`.
+
+Say: "Three questions took us from 'something ran from a USB drive' to a hidden program that was dropped on the machine. We never typed a long search. We kept asking the next question about what was on screen. That's a pivot."
+
+If the Timeline shows more rows than described, a pill in the first row is not disabled. Look for the strikethrough.
+
+### D. Tidy up and save
+
+14. Click the **x** on the pivot pill. Click each struck-through pill in the first row and choose the option to enable it again (it is in the same menu as **Temporarily disable**).
+15. Click **Refresh**. The two USB rows are back.
+16. Click **Save** (top right). Enter a title such as `USB hunt, engineering workstation` and click **Save**. Notes need a saved Timeline.
+17. Open the **Notes** tab. Type the hypothesis in one line, for example "Malware is reaching the engineering workstation on removable media", and click **Add note**.
+
+Say: "No alert drove this hunt. I brought the question, and the query is saved with the answer."
+
+If asked:
+- "Is `explorer.exe` the bad one?" No. It is normal. It only tells us a person started the program, rather than something automatic.
+- "Why not just search for `svchost32`?" You can, but you would only find it if you already knew the name. The pivot finds it from the USB clue.
+- "Do real systems work this way?" Yes. Real data also has unique process ids, which are more exact than names because names repeat. In the demo, names are enough.
 
 Notes:
-- Prep: `scripts/inject-ot-telemetry.sh` and `scripts/load-timelines.sh` done.
+- Say AND and OR once, if at all: side by side means and, stacked means or.
 - Pivot meaning: moving from one thing you found to the events around it. It answers "who started this", "what did it start" and "what else did it do". Each step is a new query built from a value already on screen.
-- The template's columns include process.parent.name, so the parent is visible in the results.
-- Real Elastic Defend data also carries process.entity_id and process.parent.entity_id. Pivot on those when you can, because process names repeat. The demo data links processes by name only.
-- Verified in the data: every step in the table returns exactly what the table says. Seen in the Kibana UI: disabled pills show a strikethrough, the template's columns (including process.parent.name and labels.bus_type) fill in, and the pivot row returns the expected event. The event renderer writes each event as a sentence, which helps when explaining one.
-- Risk: if the drag does not work, use + Add field in the query builder.
-- Fallback: open the saved hunt `<date> | CLIENT-B | Hunt: executables run from removable media on the engineering workstation (T0847) | Closed - True Positive | TLP:AMBER` and describe the pivots from its pinned events.
+- The template's columns include `process.parent.name`, so the parent is visible in the results.
+- Real Elastic Defend data also carries `process.entity_id` and `process.parent.entity_id`. Pivot on those when you can. The demo data links processes by name only.
+- Verified in the data: every pivot above returns exactly what the steps say. Seen in your screenshots: the disabled pills show a strikethrough, the template's columns fill in (including `process.parent.name` and `labels.bus_type`), the pivot rows return the expected events, and the event renderer writes the sentence.
+- Button labels: **Templates**, **All actions**, **Create timeline from template**, **Temporarily disable**, **+ Add field**, **Save** and the **Notes** tab come from the Elastic docs or your screenshots. The popups after **+ Add field**, editing the placeholder pill, enabling a pill again and **Add note** were not in a screenshot, so click through them once before the demo.
+- Risk: if a click does not do what is written, use the saved hunt below and describe the pivots from its pinned events.
+- Fallback: open the saved hunt `<date> | CLIENT-B | Hunt: executables run from removable media on the engineering workstation (T0847) | Closed - True Positive | TLP:AMBER`.
 - Slides: annotated screenshot of the Timeline layout, "Four things to know before you start" (query builder first, AND/OR layout, save early, start from a template), run-the-hunt screenshot, a pivot diagram (process, its parent, its child), saved Timeline.
 
 ## Lesson 3: Pinning and IOCs (8 min)
