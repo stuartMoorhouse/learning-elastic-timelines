@@ -19,7 +19,7 @@ Every lesson uses the same sections, so each maps cleanly to 1 to 3 Google Slide
 | Show: what to look for | What the audience should notice in the demo. No click steps | 1 slide, or screenshot |
 | Tell: the recap | The one idea to keep, and the bridge to the next lesson | 1 slide |
 
-Click steps, preparation, risks and fallbacks are kept out of the lessons.
+Click steps, preparation, risks and fallbacks live in the runbook, not in the lessons.
 
 Rule of thumb: Tell teaches one Timelines point. Show proves it live. The recap repeats the one idea they should keep.
 
@@ -36,4 +36,4 @@ Rule of thumb: Tell teaches one Timelines point. Show proves it live. The recap 
 | 7 | [Workflow: from notes to situation report](07-workflow-situation-report.md) | Workflow value | 8 |
 | 8 | [Agent Builder and wrap-up](08-agent-and-wrap-up.md) | Workflow value | 8 |
 
-The lesson files are slide content for the audience only.
+Demo steps, preparation, demo data, fallbacks and open items are in [`../doc/runbook.md`](../doc/runbook.md). The lesson files are slide content for the audience only.
