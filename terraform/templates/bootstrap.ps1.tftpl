@@ -1,0 +1,52 @@
+# Bootstrap for the Timelines demo attack VM. Rendered by Terraform; ASCII only.
+# Arguments are passed by the CustomScriptExtension (token stays in protected settings).
+param(
+    [Parameter(Mandatory = $true)][string]$FleetUrl,
+    [Parameter(Mandatory = $true)][string]$EnrollmentToken,
+    [Parameter(Mandatory = $true)][string]$ElasticVersion
+)
+
+$ErrorActionPreference = 'Stop'
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+$ProgressPreference = 'SilentlyContinue'
+
+New-Item -ItemType Directory -Force -Path 'C:\demo', 'C:\AtomicRedTeam' | Out-Null
+Start-Transcript -Path 'C:\demo\bootstrap.log' -Append
+
+# 1. Defender exclusions (demo VM only) so Atomic tests can run
+Add-MpPreference -ExclusionPath 'C:\AtomicRedTeam', 'C:\demo'
+
+# 2. Place the APT29 emulation script
+$apt29B64 = '${apt29_b64}'
+[IO.File]::WriteAllBytes('C:\demo\Invoke-APT29.ps1', [Convert]::FromBase64String($apt29B64))
+
+# 3. Elastic Agent, enrolled to Fleet (Elastic Defend arrives via the agent policy)
+if (-not (Get-Service -Name 'Elastic Agent' -ErrorAction SilentlyContinue)) {
+    $name = "elastic-agent-$ElasticVersion-windows-x86_64"
+    $zip = "C:\demo\$name.zip"
+    Invoke-WebRequest -UseBasicParsing -Uri "https://artifacts.elastic.co/downloads/beats/elastic-agent/$name.zip" -OutFile $zip
+    Expand-Archive -Path $zip -DestinationPath 'C:\demo' -Force
+    Push-Location "C:\demo\$name"
+    & .\elastic-agent.exe install --url=$FleetUrl --enrollment-token=$EnrollmentToken --force --non-interactive
+    if ($LASTEXITCODE -ne 0) { throw "elastic-agent install failed with exit code $LASTEXITCODE" }
+    Pop-Location
+}
+else {
+    Write-Output 'Elastic Agent already installed; skipping enrollment.'
+}
+
+# 4. Atomic Red Team (Invoke-AtomicRedTeam + atomics)
+if (-not (Test-Path 'C:\AtomicRedTeam\atomics')) {
+    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force | Out-Null
+    # Required by Invoke-AtomicRedTeam.psd1 (RequiredModules); not present on a fresh Server 2022 image
+    Install-Module -Name powershell-yaml -Force -Scope AllUsers -Repository PSGallery
+    $installer = 'https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/${atomic_red_team_ref}/install-atomicredteam.ps1'
+    Invoke-Expression (Invoke-WebRequest -UseBasicParsing -Uri $installer).Content
+    Install-AtomicRedTeam -getAtomics -InstallPath 'C:\AtomicRedTeam' -Force
+}
+else {
+    Write-Output 'Atomic Red Team already installed; skipping.'
+}
+
+Stop-Transcript
+exit 0

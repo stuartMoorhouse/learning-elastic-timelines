@@ -1,0 +1,13 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Exclude local-only artefacts that are gitignored but still scanned by `--no-git`"
+paths = [
+  '''.*\.tfstate$''',
+  '''.*\.tfstate\.backup$''',
+  '''.*\.tfplan$''',
+  '''.*\.pem$''',
+  # Written by scripts/configure.sh, holds the Elasticsearch and Kibana API key. Gitignored and untracked.
+  '''(^|/)shared/env\.json$''',
+]

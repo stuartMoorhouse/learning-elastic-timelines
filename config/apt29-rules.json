@@ -1,0 +1,81 @@
+{
+  "stack_version": "9.5.3",
+  "note": "Prebuilt rule names are best effort; confirm against the deployed 9.5.3 prebuilt rules package. Entries with verify=true are uncertain. configure.sh should match by name via /api/detection_engine/rules/_find and enable them. T1071.001, T1560.001 and T1048.003 steps are telemetry-only for hunting; no prebuilt rule is expected. The logon-failure rule needs Windows Security logs (system integration) and may exclude loopback sources, hence the spray targets the VM's own private IP.",
+  "rules": [
+    {
+      "technique": "T1059.001",
+      "name": "PowerShell Suspicious Payload Encoded and Compressed",
+      "rule_id": null,
+      "verify": true
+    },
+    {
+      "technique": "T1027",
+      "name": "Suspicious Execution - Short Program Name",
+      "rule_id": null,
+      "verify": true,
+      "alternates": [
+        "Encoded Executable Stored in the Registry"
+      ]
+    },
+    {
+      "technique": "T1547.001",
+      "name": "Startup or Run Key Registry Modification",
+      "rule_id": null,
+      "verify": false
+    },
+    {
+      "technique": "T1053.005",
+      "name": "Persistence via Scheduled Job Creation",
+      "rule_id": null,
+      "verify": true,
+      "alternates": [
+        "Suspicious Scheduled Task Creation",
+        "Scheduled Task Created by a Windows Script"
+      ]
+    },
+    {
+      "technique": "T1546.003",
+      "name": "Persistence via WMI Event Subscription",
+      "rule_id": null,
+      "verify": false
+    },
+    {
+      "technique": "T1003.001",
+      "name": "Potential Credential Access via Windows Utilities",
+      "rule_id": null,
+      "verify": true,
+      "alternates": [
+        "Potential LSASS Memory Dump via PssCaptureSnapShot",
+        "LSASS Memory Dump Handle Access"
+      ]
+    },
+    {
+      "technique": "T1070.001",
+      "name": "Windows Event Logs Cleared",
+      "rule_id": null,
+      "verify": false
+    },
+    {
+      "technique": "T1110.003",
+      "name": "Multiple Logon Failure from the same Source Address",
+      "rule_id": null,
+      "verify": true,
+      "alternates": [
+        "Multiple Logon Failure Followed by Logon Success"
+      ]
+    },
+    {
+      "technique": "T1105",
+      "name": "Network Connection via Signed Binary",
+      "rule_id": null,
+      "verify": true,
+      "alternates": [
+        "Suspicious Certutil Commands",
+        "Remote File Download via Script Interpreter"
+      ]
+    }
+  ],
+  "additional_enable": [
+    "Elastic Defend behavior and malware protection alerts are surfaced via the 'Endpoint Security' rule"
+  ]
+}

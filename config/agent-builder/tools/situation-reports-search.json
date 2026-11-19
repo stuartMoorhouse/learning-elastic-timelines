@@ -1,0 +1,9 @@
+{
+  "id": "situation-reports-search",
+  "type": "index_search",
+  "description": "Search the weekly situation reports stored in the situation-reports index (title, TLP marking, client, period, Markdown body, source timelines). Use this to answer questions about what a report says.",
+  "tags": ["situation-report"],
+  "configuration": {
+    "pattern": "situation-reports"
+  }
+}

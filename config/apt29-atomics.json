@@ -1,0 +1,126 @@
+{
+  "note": "Consumed by scripts/vm/Invoke-APT29.ps1 (the same list is embedded there; keep them identical in technique, tests and custom, in this order). Atomic entries run Invoke-AtomicTest <technique> -TestNumbers <test_number>. Entries with custom set are benign built-in steps in the script. expected_rule is the alert each step is verified to raise on 9.5.3 (rule queries read from the stack); null means telemetry only. The steps run as SYSTEM through az vm run-command. A wmic (CommandLineEventConsumer create) and a rundll32/comsvcs MiniDump custom step were tried and removed on 2026-11-18: their literal strings tripped Windows Defender AMSI static scanning and blocked the whole script from running (ScriptContainedMaliciousContent), not just those two steps. The real T1546.003 atomic test still raises the WMI subscription alert on its own; T1003.001 (credential access) has no step in this list for now.",
+  "campaign": "APT29 (Cozy Bear) emulation, ATT&CK-mapped, no real malware",
+  "tests": [
+    {
+      "order": 1,
+      "tactic": "Defense Evasion",
+      "technique": "T1070.001",
+      "test_number": null,
+      "custom": "clearlog",
+      "test_name": "Clear the System and Security event logs",
+      "expected_rule": "Windows Event Logs Cleared",
+      "verify": true
+    },
+    {
+      "order": 2,
+      "tactic": "Defense Evasion",
+      "technique": "T1027",
+      "test_number": 2,
+      "custom": null,
+      "test_name": "base64-encoded PowerShell",
+      "expected_rule": "Malicious Behavior Detection Alert: Potential Pentesting PowerShell Script",
+      "verify": true
+    },
+    {
+      "order": 3,
+      "tactic": "Persistence",
+      "technique": "T1547.001",
+      "test_number": 1,
+      "custom": null,
+      "test_name": "Registry Run key (atomic)",
+      "expected_rule": null,
+      "verify": true
+    },
+    {
+      "order": 4,
+      "tactic": "Persistence",
+      "technique": "T1547.001",
+      "test_number": null,
+      "custom": "runkey",
+      "test_name": "HKLM Run key value with a benign command",
+      "expected_rule": "Startup or Run Key Registry Modification",
+      "verify": true
+    },
+    {
+      "order": 5,
+      "tactic": "Persistence",
+      "technique": "T1053.005",
+      "test_number": 1,
+      "custom": null,
+      "test_name": "Scheduled task (local)",
+      "expected_rule": null,
+      "verify": true
+    },
+    {
+      "order": 6,
+      "tactic": "Persistence",
+      "technique": "T1053.002",
+      "test_number": null,
+      "custom": "jobfile",
+      "test_name": "Dummy .job file in C:\\Windows\\Tasks",
+      "expected_rule": "Persistence via Scheduled Job Creation",
+      "verify": true
+    },
+    {
+      "order": 7,
+      "tactic": "Persistence",
+      "technique": "T1546.003",
+      "test_number": 1,
+      "custom": null,
+      "test_name": "WMI event subscription (atomic)",
+      "expected_rule": "Malicious Behavior Detection Alert: Suspicious WMI Event Consumer Subscription",
+      "verify": true
+    },
+    {
+      "order": 8,
+      "tactic": "Credential Access",
+      "technique": "T1110.003",
+      "test_number": null,
+      "custom": "spray",
+      "test_name": "Password spray against local accounts (self-targeted)",
+      "expected_rule": "Multiple Logon Failure from the same Source Address",
+      "verify": true
+    },
+    {
+      "order": 9,
+      "tactic": "Command And Control",
+      "technique": "T1071.001",
+      "test_number": null,
+      "custom": "beacon",
+      "test_name": "C2-style HTTP beaconing (telemetry for hunting)",
+      "expected_rule": null,
+      "verify": true
+    },
+    {
+      "order": 10,
+      "tactic": "Command And Control",
+      "technique": "T1105",
+      "test_number": 7,
+      "custom": null,
+      "test_name": "Ingress tool transfer via certutil (may be blocked by Defender; telemetry only)",
+      "expected_rule": null,
+      "verify": true
+    },
+    {
+      "order": 11,
+      "tactic": "Collection",
+      "technique": "T1560.001",
+      "test_number": null,
+      "custom": "stage",
+      "test_name": "Data staging (telemetry for hunting)",
+      "expected_rule": null,
+      "verify": true
+    },
+    {
+      "order": 12,
+      "tactic": "Exfiltration",
+      "technique": "T1048.003",
+      "test_number": null,
+      "custom": "exfil",
+      "test_name": "Exfiltration attempt to non-routable address (telemetry for hunting)",
+      "expected_rule": null,
+      "verify": true
+    }
+  ]
+}

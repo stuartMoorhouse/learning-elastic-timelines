@@ -1,0 +1,27 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "properties": {
+      "title": {
+        "type": "text",
+        "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } }
+      },
+      "tlp": { "type": "keyword" },
+      "client": { "type": "keyword" },
+      "period_start": { "type": "date", "format": "strict_date_optional_time||yyyy-MM-dd" },
+      "period_end": { "type": "date", "format": "strict_date_optional_time||yyyy-MM-dd" },
+      "body": { "type": "text" },
+      "sources": { "type": "keyword", "ignore_above": 512 },
+      "keywords": { "type": "keyword" },
+      "filter_client": { "type": "keyword" },
+      "filter_keywords": { "type": "keyword" },
+      "no_data": { "type": "boolean" },
+      "generated_at": { "type": "date" },
+      "model": { "type": "keyword" },
+      "workflow_execution_id": { "type": "keyword" }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "latest-situation-reports",
+  "type": "esql",
+  "description": "Return the most recent weekly situation reports, newest first, with TLP marking, client, period, source timelines and the full Markdown body.",
+  "tags": ["situation-report"],
+  "configuration": {
+    "query": "FROM situation-reports | SORT generated_at DESC | LIMIT ?limit | KEEP generated_at, title, tlp, client, period_start, period_end, sources, body",
+    "params": {
+      "limit": { "type": "integer", "description": "Number of reports to return (1 to 5)" }
+    }
+  }
+}

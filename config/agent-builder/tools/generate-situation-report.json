@@ -1,0 +1,10 @@
+{
+  "id": "generate-situation-report",
+  "type": "workflow",
+  "description": "Generate a new weekly situation report from the current Security Timeline notes by running the Weekly Situation Report workflow. Takes about a minute. Afterwards use latest-situation-reports to read the result.",
+  "tags": ["situation-report"],
+  "configuration": {
+    "workflow_id": "__WORKFLOW_ID__",
+    "wait_for_completion": true
+  }
+}

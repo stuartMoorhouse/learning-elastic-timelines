@@ -1,0 +1,12 @@
+{
+  "id": "security-alerts-summary",
+  "type": "esql",
+  "description": "Count Elastic Security detection alerts by rule and host since a given time. Use this to check whether a situation report claim is backed by alerts.",
+  "tags": ["situation-report", "alerts"],
+  "configuration": {
+    "query": "FROM .alerts-security.alerts-* | WHERE @timestamp >= ?since | STATS alerts = COUNT(*) BY kibana.alert.rule.name, host.name | SORT alerts DESC | LIMIT 50",
+    "params": {
+      "since": { "type": "date", "description": "Start of the window in ISO 8601 format" }
+    }
+  }
+}
